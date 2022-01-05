@@ -121,7 +121,7 @@ class DotaClient():
     @staticmethod 
     def random_match_id():
         # Define lower limit and upper limit to sample match ids from
-        lower_limit, upper_limit = 5, 6.3
+        lower_limit, upper_limit = 6, 6.5
         return int(round(np.random.uniform(lower_limit,upper_limit),9)*1e9)
 
     def get_player_name_from_id(self, player_id):
@@ -204,15 +204,21 @@ def db_insert(db, cursor, data, dota_client) -> None:
     insert_cmd = "INSERT INTO matches (match_id, result, rad1, rad2, rad3, rad4, rad5, dire1, dire2, dire3, dire4, dire5, patch) values ({},{},{},{},{},{},{},{},{},{},{},{},{});"
     if len(data)!=1:
         try:
-            matchid = data['match_id']
-            radiant, dire = dota_client.get_draft(data)
-            if data['radiant_win']==True:
-                result = 1
+            if data['lobby_type'] in [5,6,7]:
+                try:
+                    matchid = data['match_id']
+                    radiant, dire = dota_client.get_draft(data)
+                    if data['radiant_win']==True:
+                        result = 1
+                    else:
+                        result = 0
+                    patch = data['patch']
+                    print(insert_cmd.format(matchid,result,radiant[0],radiant[1],radiant[2],radiant[3],radiant[4],dire[0],dire[1],dire[2],dire[3],dire[4],patch))
+                    cursor.execute(insert_cmd.format(matchid,result,radiant[0],radiant[1],radiant[2],radiant[3],radiant[4],dire[0],dire[1],dire[2],dire[3],dire[4],patch))
+                except:
+                    pass
             else:
-                result = 0
-            patch = data['patch']
-            print(insert_cmd.format(matchid,result,radiant[0],radiant[1],radiant[2],radiant[3],radiant[4],dire[0],dire[1],dire[2],dire[3],dire[4],patch))
-            cursor.execute(insert_cmd.format(matchid,result,radiant[0],radiant[1],radiant[2],radiant[3],radiant[4],dire[0],dire[1],dire[2],dire[3],dire[4],patch))
+                pass
         except:
             pass
     else:
